@@ -1,5 +1,3 @@
-name: Windows-Installer bauen
-
 on:
   push:
   workflow_dispatch:
