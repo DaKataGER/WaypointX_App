@@ -1,0 +1,61 @@
+{
+  "name": "waypointx-app",
+  "productName": "Waypoint X",
+  "version": "1.0.0",
+  "description": "Waypoint X – Mitarbeiter-App",
+  "author": "Waypoint X",
+  "license": "UNLICENSED",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "com.waypointx.app",
+    "productName": "Waypoint X",
+    "copyright": "Waypoint X",
+    "files": [
+      "main.js",
+      "config.json",
+      "seiten/**/*",
+      "build/icon.ico"
+    ],
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "WaypointX-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "Waypoint X",
+      "uninstallDisplayName": "Waypoint X",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico",
+      "installerLanguages": [
+        "de_DE"
+      ],
+      "language": "1031",
+      "runAfterFinish": true
+    }
+  }
+}
