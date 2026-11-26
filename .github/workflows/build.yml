@@ -45,22 +45,18 @@ jobs:
         run: npm install
 
       - name: Installer bauen
-        if: steps.version.outputs.neu != 'true'
         run: npm run dist
 
-      - name: Versions-Tag anlegen
+      - name: Als Update veroeffentlichen
         if: steps.version.outputs.neu == 'true'
         shell: pwsh
-        run: |
-          $tag = "v${{ steps.version.outputs.version }}"
-          git tag -f $tag
-          git push -f origin $tag
-
-      - name: Installer bauen und als Update veroeffentlichen
-        if: steps.version.outputs.neu == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx electron-builder --win --x64 --publish always
+        run: |
+          $v = "${{ steps.version.outputs.version }}"
+          $dateien = @(Get-ChildItem dist -File | Where-Object { $_.Name -match '\.(exe|blockmap)$' -or $_.Name -eq 'latest.yml' } | ForEach-Object { $_.FullName })
+          if (-not ($dateien | Where-Object { $_ -like '*latest.yml' })) { Write-Error "latest.yml fehlt"; exit 1 }
+          gh release create "v$v" @dateien --repo "${{ github.repository }}" --target "${{ github.sha }}" --title "Waypoint X $v" --notes "Automatisches Update auf Version $v."
 
       - name: Installer bereitstellen
         uses: actions/upload-artifact@v4
