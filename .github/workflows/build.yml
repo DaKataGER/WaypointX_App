@@ -1,6 +1,11 @@
+name: Windows-Installer bauen
+
 on:
   push:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -17,6 +22,18 @@ jobs:
             exit 1
           }
 
+      - name: Pruefen, ob diese Version schon veroeffentlicht ist
+        id: version
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $v = (Get-Content package.json -Raw | ConvertFrom-Json).version
+          gh release view "v$v" --repo "${{ github.repository }}" *> $null
+          if ($LASTEXITCODE -eq 0) { "neu=false" >> $env:GITHUB_OUTPUT; Write-Host "Version $v gibt es schon - nur bauen." }
+          else { "neu=true" >> $env:GITHUB_OUTPUT; Write-Host "Version $v ist neu - wird als Update veroeffentlicht." }
+          exit 0
+
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -25,7 +42,14 @@ jobs:
         run: npm install
 
       - name: Installer bauen
+        if: steps.version.outputs.neu != 'true'
         run: npm run dist
+
+      - name: Installer bauen und als Update veroeffentlichen
+        if: steps.version.outputs.neu == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --x64 --publish always
 
       - name: Installer bereitstellen
         uses: actions/upload-artifact@v4
