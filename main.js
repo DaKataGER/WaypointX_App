@@ -26,7 +26,7 @@ function ladeUrl() {
 function erlaubt(adresse) {
   try {
     const u = new URL(adresse);
-    if (u.protocol === 'file:' && u.pathname.includes('/seiten/')) return true;
+    if (u.protocol === 'file:') return true; // eigene Lade- und Fehlerseite
     return u.protocol === 'https:' && ERLAUBTE_HOSTS.some(re => re.test(u.hostname));
   } catch (e) {
     return false;
@@ -65,7 +65,7 @@ app.setAppUserModelId('com.waypointx.app');
 Menu.setApplicationMenu(null);
 
 function seite(name, params) {
-  return fenster.loadFile(path.join(__dirname, 'seiten', name), { query: params || {} });
+  return fenster.loadFile(path.join(__dirname, name), { query: params || {} });
 }
 
 function oeffneApp() {
@@ -78,7 +78,7 @@ function erstelleFenster() {
   const z = ladeZustand();
   fenster = new BrowserWindow({
     title: APP_NAME,
-    icon: path.join(__dirname, 'build', 'icon.ico'),
+    icon: path.join(__dirname, 'icon.ico'),
     width: z.width || 1440,
     height: z.height || 900,
     x: z.x, y: z.y,

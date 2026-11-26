@@ -22,12 +22,13 @@
     "files": [
       "main.js",
       "config.json",
-      "seiten/**/*",
-      "build/icon.ico"
+      "laden.html",
+      "fehler.html",
+      "emblem.png",
+      "icon.ico"
     ],
     "directories": {
-      "output": "dist",
-      "buildResources": "build"
+      "output": "dist"
     },
     "win": {
       "target": [
@@ -38,7 +39,7 @@
           ]
         }
       ],
-      "icon": "build/icon.ico",
+      "icon": "icon.ico",
       "artifactName": "WaypointX-Setup-${version}.${ext}"
     },
     "nsis": {
@@ -49,8 +50,8 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Waypoint X",
       "uninstallDisplayName": "Waypoint X",
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico",
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
       "installerLanguages": [
         "de_DE"
       ],
