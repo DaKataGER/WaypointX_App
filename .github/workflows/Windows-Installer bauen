@@ -1,0 +1,37 @@
+name: Windows-Installer bauen
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Link in config.json pruefen
+        shell: pwsh
+        run: |
+          $url = (Get-Content config.json -Raw | ConvertFrom-Json).url
+          if ($url -notmatch '^https://script\.google\.com/.+/exec$') {
+            Write-Error "In config.json ist noch kein gueltiger Web-App-Link eingetragen."
+            exit 1
+          }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Abhaengigkeiten installieren
+        run: npm install
+
+      - name: Installer bauen
+        run: npm run dist
+
+      - name: Installer bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: WaypointX-Setup
+          path: dist/*.exe
+          if-no-files-found: error
