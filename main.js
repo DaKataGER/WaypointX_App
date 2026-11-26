@@ -133,6 +133,22 @@ function erstelleFenster() {
     else if (app.isPackaged && (taste === 'f12' || (strg && input.shift && ['i', 'j', 'c'].includes(taste)))) e.preventDefault();
   });
 
+  // Google-Hinweisleiste automatisch über ihr eigenes "Schließen"-Symbol schließen
+  // (wie ein Klick auf das X – die Leiste selbst wird nicht verändert).
+  wc.on('did-finish-load', () => {
+    let host = '';
+    try { host = new URL(wc.getURL()).hostname; } catch (e) { return; }
+    if (host !== 'script.google.com') return;
+    wc.executeJavaScript(`(() => {
+      let n = 0;
+      const t = setInterval(() => {
+        const x = document.querySelector('#warning .warning-banner-close-icon');
+        if (x) { x.click(); clearInterval(t); }
+        else if (++n > 40) clearInterval(t);
+      }, 100);
+    })();`).catch(() => {});
+  });
+
   fenster.once('ready-to-show', () => fenster.show());
   fenster.on('close', () => speichereZustand(fenster));
   fenster.on('closed', () => { fenster = null; });
