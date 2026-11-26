@@ -3,7 +3,8 @@
 // Keine Adressleiste, keine Tabs, kein Menü, keine Entwicklerwerkzeuge.
 // Links zu anderen Seiten (z. B. Verträge in Google Docs) öffnen im normalen Browser.
 
-const { app, BrowserWindow, Menu, shell, session } = require('electron');
+const { app, BrowserWindow, Menu, shell, session, dialog } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
 
@@ -156,6 +157,35 @@ function erstelleFenster() {
   seite('laden.html').then(() => setTimeout(oeffneApp, 150));
 }
 
+// --- Automatische Updates (GitHub Releases) ----------------------------------
+// Prüft beim Start und alle 4 Stunden. Neue Versionen werden im Hintergrund geladen
+// und beim Neustart bzw. spätestens beim nächsten Schließen der App installiert.
+function updatesEinrichten() {
+  if (!app.isPackaged) return;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+  let gefragt = false;
+  autoUpdater.on('update-downloaded', async info => {
+    if (gefragt || !fenster) return;
+    gefragt = true;
+    const { response } = await dialog.showMessageBox(fenster, {
+      type: 'info',
+      title: APP_NAME,
+      message: 'Update auf Version ' + info.version + ' ist bereit.',
+      detail: 'Jetzt neu starten, um das Update zu installieren? Bei „Später“ wird es beim nächsten Schließen von Waypoint X installiert.',
+      buttons: ['Jetzt neu starten', 'Später'],
+      defaultId: 0,
+      cancelId: 1,
+      noLink: true
+    });
+    if (response === 0) setImmediate(() => autoUpdater.quitAndInstall(true, true));
+  });
+  autoUpdater.on('error', () => { /* offline o. Ä. – nächster Versuch beim nächsten Intervall */ });
+  const pruefen = () => autoUpdater.checkForUpdates().catch(() => {});
+  setTimeout(pruefen, 5000);
+  setInterval(pruefen, 4 * 3600 * 1000);
+}
+
 app.whenReady().then(() => {
   // Keine Berechtigungen (Kamera, Mikrofon, Standort, Benachrichtigungen …)
   const ses = session.fromPartition('persist:waypointx');
@@ -165,6 +195,7 @@ app.whenReady().then(() => {
     item.setSavePath(path.join(app.getPath('downloads'), item.getFilename()));
   });
   erstelleFenster();
+  updatesEinrichten();
 });
 
 app.on('window-all-closed', () => app.quit());
